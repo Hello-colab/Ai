@@ -1,17 +1,18 @@
-import { hydrate } from '@grammyjs/hydrate';
+import { hydrate, HydrateFlavor } from '@grammyjs/hydrate';
 import { Injectable } from '@nestjs/common';
 import 'dotenv/config';
 import { Bot, Context, InlineKeyboard } from 'grammy';
 import { Update } from 'grammy/types';
+import telegramifyMarkdown from 'telegramify-markdown';
 import { ButtonType, CommandType } from './bot.interface';
+import { TestService } from './test.service';
 import { Utils } from './utils/utils';
 
-import telegramifyMarkdown from 'telegramify-markdown';
-import { TestService } from './test.service';
+export type MyContext = HydrateFlavor<Context>;
 
 @Injectable()
 export class BotService {
-  private bot: Bot;
+  private bot: Bot<MyContext>;
   private botStarted = false;
   private mapButtons: ButtonType<this>[] = [];
   private mapCommands: CommandType<this>[] = [];
@@ -23,7 +24,7 @@ export class BotService {
   }
   async init() {
     try {
-      this.bot = new Bot(process.env.BOT_TOKEN || '');
+      this.bot = new Bot<MyContext>(process.env.BOT_TOKEN || '');
       const webhookUrl = (process.env.WEBHOOK_URL || '') + '/bot/webhook';
       await this.bot.api.setWebhook(webhookUrl);
       this.bot.use(hydrate());
@@ -49,7 +50,7 @@ export class BotService {
     Utils.mapButton(this.bot, this.mapButtons, this);
   }
 
-  async start(ctx: Context) {
+  async start(ctx: MyContext) {
     try {
       const inlineKeyboard = new InlineKeyboard()
         .text('Delete', 'delete')
@@ -65,11 +66,11 @@ export class BotService {
     }
   }
 
-  async helpBtn(ctx: Context, self: this) {
+  async helpBtn(ctx: MyContext, self: this) {
     await self.help(ctx);
   }
 
-  async help(ctx: Context) {
+  async help(ctx: MyContext) {
     const text = `*Help Menu:*
 - Use /start to begin the interaction.
 - Use /test to test.
@@ -83,7 +84,7 @@ export class BotService {
     }
   }
 
-  async deleteBtn(ctx: Context) {
+  async deleteBtn(ctx: MyContext) {
     const chatId = ctx?.update?.callback_query?.message?.message_id;
 
     if (!chatId) {
