@@ -23,10 +23,22 @@ export class BotService {
     });
   }
   async init() {
+    const webhookUrl = (process.env.WEBHOOK_URL || '') + '/bot/webhook';
+
     try {
       this.bot = new Bot<MyContext>(process.env.BOT_TOKEN || '');
-      const webhookUrl = (process.env.WEBHOOK_URL || '') + '/bot/webhook';
-      await this.bot.api.setWebhook(webhookUrl);
+
+      if (webhookUrl.includes('http')) {
+        await this.bot.api.setWebhook(webhookUrl);
+        console.log('Bot is running in webhook mode');
+      } else {
+        this.bot.start().catch((error) => {
+          console.log(error);
+        });
+        await this.bot.api.deleteWebhook();
+        console.log('Bot is running in polling mode');
+      }
+
       this.bot.use(hydrate());
       await this.bot.init();
 
@@ -58,9 +70,16 @@ export class BotService {
         .row()
         .text('Delete this message', 'delete');
 
-      await ctx.reply('Welcome to the bot!', {
-        reply_markup: inlineKeyboard,
-      });
+      const status = await ctx.reply(
+        'Welcome to the bot! (Auto delete after 5s)',
+        {
+          reply_markup: inlineKeyboard,
+        },
+      );
+
+      setTimeout(() => {
+        status.delete().catch(() => {});
+      }, 5000);
     } catch (error) {
       console.error('Error in start command:', error);
     }
