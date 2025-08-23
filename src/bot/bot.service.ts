@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { Bot, Composer, Context, InlineKeyboard } from 'grammy';
 import { Update } from 'grammy/types';
 import telegramifyMarkdown from 'telegramify-markdown';
+import { AiService } from './ai.service';
 import { ButtonType, CommandType } from './bot.interface';
 import { TestService } from './test.service';
 import { Utils } from './utils/utils';
@@ -21,7 +22,10 @@ export class BotService {
   private mapButtons: ButtonType<this>[] = [];
   private mapCommands: CommandType<this>[] = [];
 
-  constructor(private testService: TestService) {
+  constructor(
+    private testService: TestService,
+    private aiService: AiService,
+  ) {
     this.init().catch((error) => {
       console.error('Failed to initialize bot:', error);
     });
@@ -37,6 +41,7 @@ export class BotService {
 
       this.initCommands();
       this.testService.initBot(this.bot);
+      this.aiService.initBot(this.bot);
 
       if (WEBHOOK_MODE) {
         await this.bot.api.setWebhook(webhookUrl);
