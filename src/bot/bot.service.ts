@@ -1,7 +1,7 @@
 import { hydrate, HydrateFlavor } from '@grammyjs/hydrate';
 import { Injectable } from '@nestjs/common';
 import 'dotenv/config';
-import { Bot, Context, InlineKeyboard } from 'grammy';
+import { Bot, Composer, Context, InlineKeyboard } from 'grammy';
 import { Update } from 'grammy/types';
 import telegramifyMarkdown from 'telegramify-markdown';
 import { ButtonType, CommandType } from './bot.interface';
@@ -10,6 +10,7 @@ import { Utils } from './utils/utils';
 
 export type MyContext = HydrateFlavor<Context>;
 
+const BOT_TOKEN = process.env.BOT_TOKEN || '';
 const WEBHOOK_URL = (process.env.WEBHOOK_URL || '') + '/bot/webhook';
 const WEBHOOK_MODE = WEBHOOK_URL.includes('http');
 
@@ -29,7 +30,13 @@ export class BotService {
     const webhookUrl = (process.env.WEBHOOK_URL || '') + '/bot/webhook';
 
     try {
-      this.bot = new Bot<MyContext>(process.env.BOT_TOKEN || '');
+      this.bot = new Bot<MyContext>(BOT_TOKEN);
+
+      this.bot.use(new Composer());
+      this.bot.use(hydrate());
+
+      this.initCommands();
+      this.testService.initBot(this.bot);
 
       if (WEBHOOK_MODE) {
         await this.bot.api.setWebhook(webhookUrl);
@@ -42,11 +49,7 @@ export class BotService {
         console.log('Bot is running in polling mode');
       }
 
-      this.bot.use(hydrate());
       if (WEBHOOK_MODE) await this.bot.init();
-
-      this.initCommands();
-      this.testService.initBot(this.bot);
 
       this.botStarted = true;
     } catch (error) {
