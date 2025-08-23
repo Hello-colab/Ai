@@ -10,6 +10,9 @@ import { Utils } from './utils/utils';
 
 export type MyContext = HydrateFlavor<Context>;
 
+const WEBHOOK_URL = (process.env.WEBHOOK_URL || '') + '/bot/webhook';
+const WEBHOOK_MODE = WEBHOOK_URL.includes('http');
+
 @Injectable()
 export class BotService {
   private bot: Bot<MyContext>;
@@ -28,7 +31,7 @@ export class BotService {
     try {
       this.bot = new Bot<MyContext>(process.env.BOT_TOKEN || '');
 
-      if (webhookUrl.includes('http')) {
+      if (WEBHOOK_MODE) {
         await this.bot.api.setWebhook(webhookUrl);
         console.log('Bot is running in webhook mode');
       } else {
@@ -40,7 +43,7 @@ export class BotService {
       }
 
       this.bot.use(hydrate());
-      await this.bot.init();
+      if (WEBHOOK_MODE) await this.bot.init();
 
       this.initCommands();
       this.testService.initBot(this.bot);
