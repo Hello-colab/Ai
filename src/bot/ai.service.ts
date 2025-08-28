@@ -26,6 +26,8 @@ export class AiService {
 
       const result = await self.googleService.runGemini(promt);
 
+      if (!result) return;
+
       await ctx.reply(telegramifyMarkdown(result, 'escape'), {
         parse_mode: 'MarkdownV2',
       });
