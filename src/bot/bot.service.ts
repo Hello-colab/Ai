@@ -50,7 +50,11 @@ export class BotService {
         this.bot.start().catch((error) => {
           console.log(error);
         });
-        await this.bot.api.deleteWebhook();
+        try {
+          await this.bot.api.deleteWebhook();
+        } catch (error) {
+          console.log(error);
+        }
         console.log('Bot is running in polling mode');
       }
 
