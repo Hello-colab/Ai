@@ -11,11 +11,16 @@ export class GoogleService {
 
   async runGemini(text: string): Promise<string> {
     if (!text) return '';
-    const response = await this.ai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: text,
-    });
+    try {
+      const response = await this.ai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents: text,
+      });
 
-    return response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    } catch (error) {
+      console.log(error);
+      return '';
+    }
   }
 }
