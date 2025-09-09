@@ -14,7 +14,7 @@ export class AiService {
   initBot(bot: Bot) {
     this.bot = bot;
 
-    Utils.mapCommand(this.bot, [{ command: 'ai', fun: this.ai }], this);
+    Utils.mapCommand(this.bot, [{ command: 'hi', fun: this.ai }], this);
   }
 
   async ai(ctx: MyContext, self: this) {
@@ -44,3 +44,4 @@ export class AiService {
     }
   }
 }
+
